@@ -84,6 +84,7 @@
         };
 
         update-branches = flake-lib.lib.mkUpdateBranches {
+          minimumTrackingVersion = "0.8.6";
           inherit pkgs source;
           pinSchema = "github-npm";
         };
