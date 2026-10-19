@@ -67,9 +67,6 @@
           npmDepsFetcherVersion = 2;
           inherit npmDepsHash;
 
-          # npm install fails on nodejs_24 (NixOS/nixpkgs#474535).
-          nodejs = pkgs.nodejs_22;
-
           nativeBuildInputs = [
             pkgs.pkg-config
             pkgs.node-gyp
