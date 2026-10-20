@@ -77,7 +77,6 @@
 
         update-version = flake-lib.lib.mkUpdateVersion {
           inherit pkgs source;
-          buildAttr = "librechat";
           extraHashes = [ "npmDepsHash" ];
           # fetcherVersion 2 must match npmDepsFetcherVersion above (it changes the hash).
           artifactHook = flake-lib.lib.mkJsDepsHook { inherit pkgs; manager = "npm"; fetcherVersion = 2; };
