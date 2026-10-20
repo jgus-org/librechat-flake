@@ -67,6 +67,9 @@
           npmDepsFetcherVersion = 2;
           inherit npmDepsHash;
 
+          # Default nodejs builds 0.8.8; 0.8.7 and 0.8.6 fail their build at the npm cleanup step.
+          nodejs = pkgs.nodejs_22;
+
           nativeBuildInputs = [
             pkgs.pkg-config
             pkgs.node-gyp
