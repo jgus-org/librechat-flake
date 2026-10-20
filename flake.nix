@@ -4,6 +4,10 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     flake-utils.url = "github:numtide/flake-utils";
+    treefmt-nix = {
+      url = "github:numtide/treefmt-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     flake-lib = {
       url = "github:jgus-org/flake-lib/v1";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -11,14 +15,35 @@
     };
   };
 
-  outputs = { self, nixpkgs, flake-utils, flake-lib }:
-    flake-utils.lib.eachDefaultSystem (system:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      flake-utils,
+      treefmt-nix,
+      flake-lib,
+    }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
       let
         pin = import ./pin.nix;
-        inherit (pin) version sourceRev sourceHash npmDepsHash;
-        source = { type = "github"; owner = "danny-avila"; repo = "LibreChat"; };
+        inherit (pin)
+          version
+          sourceRev
+          sourceHash
+          npmDepsHash
+          ;
+        source = {
+          type = "github";
+          owner = "danny-avila";
+          repo = "LibreChat";
+        };
         pkgs = import nixpkgs { inherit system; };
         inherit (pkgs) lib;
+        treefmtEval = treefmt-nix.lib.evalModule pkgs {
+          projectRootFile = "flake.nix";
+          programs.nixfmt.enable = true;
+        };
 
         # Forked from nixpkgs pkgs/by-name/li/librechat/package.nix (the two patches are copied verbatim). Kept deliberately close to upstream so re-syncing on a future nixpkgs bump is a diff, not a rewrite.
         librechat = pkgs.buildNpmPackage (finalAttrs: {
@@ -42,10 +67,13 @@
           npmDepsFetcherVersion = 2;
           inherit npmDepsHash;
 
-          # npm install fails on nodejs_24 (NixOS/nixpkgs#474535).
+          # Default nodejs builds 0.8.8; 0.8.7 and 0.8.6 fail their build at the npm cleanup step.
           nodejs = pkgs.nodejs_22;
 
-          nativeBuildInputs = [ pkgs.pkg-config pkgs.node-gyp ];
+          nativeBuildInputs = [
+            pkgs.pkg-config
+            pkgs.node-gyp
+          ];
           buildInputs = [ pkgs.vips ];
 
           npmBuildScript = "frontend";
@@ -79,7 +107,11 @@
           inherit pkgs source;
           extraHashes = [ "npmDepsHash" ];
           # fetcherVersion 2 must match npmDepsFetcherVersion above (it changes the hash).
-          artifactHook = flake-lib.lib.mkJsDepsHook { inherit pkgs; manager = "npm"; fetcherVersion = 2; };
+          artifactHook = flake-lib.lib.mkJsDepsHook {
+            inherit pkgs;
+            manager = "npm";
+            fetcherVersion = 2;
+          };
         };
 
         update-branches = flake-lib.lib.mkUpdateBranches {
@@ -89,9 +121,14 @@
         };
       in
       {
+        formatter = treefmtEval.config.build.wrapper;
+
+        checks.formatting = treefmtEval.config.build.check self;
+
         packages = {
           inherit librechat update-version update-branches;
           default = librechat;
         };
-      });
+      }
+    );
 }
