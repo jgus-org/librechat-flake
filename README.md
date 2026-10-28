@@ -24,6 +24,4 @@ input-pkgs.librechat = librechat.packages.${system}.librechat;
 
 Built for `x86_64-linux`, `aarch64-linux`, and `aarch64-darwin`.
 
-## Licence
-
-MIT, following upstream.
+See [LICENSE.md](LICENSE.md) for licensing and copyright, and [NOTICE.md](NOTICE.md) for the terms of upstream and distributed artifacts.
